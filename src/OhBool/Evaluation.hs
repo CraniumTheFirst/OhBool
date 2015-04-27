@@ -15,6 +15,10 @@ evaluateAt vars expr = case expr of
     liftM not (evaluateAt vars ex)
   Variable v ->
     getValue v vars
+  BoolChain op exprs -> do
+    values <- mapM (evaluateAt vars) exprs
+    return $ foldl1 (performOperation op) values
+  Empty -> Nothing
 
 performOperation :: BinaryOperator -> Bool -> Bool -> Bool
 performOperation Or  = (.|.)
