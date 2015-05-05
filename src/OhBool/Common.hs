@@ -6,10 +6,9 @@ import qualified Data.Map as M
 data BinaryOperator = Or
                     | And
                     | Xor
-                    deriving Show
 
 type VarValue = Bool
-newtype Var = Var { name :: Char } deriving (Show, Eq, Ord)
+newtype Var = Var Char deriving (Show,Ord,Eq)
 type Vars = M.Map Var VarValue
 
 getValue :: Var -> Vars -> Maybe VarValue
@@ -19,5 +18,4 @@ data Expression = BinaryExpression BinaryOperator Expression Expression
                 | Not Expression
                 | Variable Var
                 | BoolChain BinaryOperator [Expression]
-                | Empty
-                deriving Show
+                | BoolValue Bool

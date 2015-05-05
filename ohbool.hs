@@ -1,6 +1,4 @@
 module Main where
 
-import OhBool.Common
-
-main :: IO () 
-main = putStrLn $ show $ Variable (Var 'a')
+main :: IO ()
+main = print "Hello World"
