@@ -20,6 +20,7 @@ library
                      , OhBool.Parser
                      , OhBool.Evaluation
                      , OhBool.Utils
+                     , OhBool.Reducer
   other-extensions:    MultiWayIf
                      , GeneralizedNewtypeDeriving
                      , FlexibleContexts
@@ -28,6 +29,7 @@ library
   build-depends:       base
                      , containers
                      , mtl
+                     , gray-code
 
 executable ohbool
   build-depends:       base

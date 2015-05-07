@@ -33,11 +33,6 @@ performOperation Or  = (.|.)
 performOperation And = (.&.)
 performOperation Xor = xor
 
-data TruthTable = TruthTable Expression (M.Map Vars Bool)
-
-instance Show TruthTable where
-  show (TruthTable expr xs) = "Truth table for " ++ show expr ++ "\n" ++ (show xs)
-
 getVariables' :: Expression -> [Var]
 getVariables' (Variable v) = [v]
 getVariables' (Not ex) = getVariables' ex
@@ -54,14 +49,5 @@ constructTruthTable ex = TruthTable ex eval
         states = allPossibilities variables
         eval = M.fromList $ map (\vars -> (vars, runReader (evaluate ex) vars)) states
 
-allStates' :: [(Var,Bool)] -> [Var] -> [[(Var,Bool)]]
-allStates' acc []= [reverse acc]
-allStates' acc (v:vs) = allStates' acc1 vs ++ allStates' acc2 vs
-  where acc1 = (v, True):acc
-        acc2 = (v, False):acc
-
-allStates :: [Var] -> [[(Var,Bool)]]
-allStates = allStates' []
-
 allPossibilities :: [Var] -> [Vars]
-allPossibilities vars = map (\v -> M.fromList v)$ foldl (\ls v -> concatMap (\l -> [(v,True):l,(v,False):l]) ls) [[]] vars
+allPossibilities vars = map (\v -> M.fromList v) $ foldl (\ls v -> concatMap (\l -> [(v,False):l,(v,True):l]) ls) [[]] vars

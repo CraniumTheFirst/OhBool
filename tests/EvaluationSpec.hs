@@ -1,6 +1,6 @@
 module EvaluationSpec where
 
-import Control.Monad.State
+import Control.Monad.Reader
 import qualified Data.Map as M
 
 import Test.Hspec
@@ -30,6 +30,15 @@ spec = do
         it "evaluates the 4th test expr" $ do
           unsafeCatchException (result someExpr4) `shouldBe` Nothing
 
+        it "generates a TruthTable for expr1" $ do
+          constructTruthTable onlyVar `shouldBe` TruthTable onlyVar (M.fromList [(M.fromList [(Var 'x',False)],False),(M.fromList [(Var 'x',True)],True)])
+
+        it "prints something for the TruthTable" $ do
+          length (show $ constructTruthTable onlyVar) > 0
+
+        it "does not equal two different expressions" $ do
+          someExpr /= someExpr2
+
 someExpr :: Expression
 someExpr = Not (BinaryExpression Xor (Variable $ Var 'x') (Variable $ Var 'y'))
 
@@ -42,8 +51,11 @@ someExpr3 = Not (BoolChain And [(BoolValue True),(BoolValue False)])
 someExpr4 :: Expression
 someExpr4 = Variable $ Var '.'
 
+onlyVar :: Expression
+onlyVar = BinaryExpression Or (Not (BoolValue True)) (BoolChain And [Variable $ Var 'x'])
+
 vars :: Vars
 vars = M.fromList [(Var 'x', True), (Var 'y', True)]
 
 result :: Expression -> Bool
-result e = fst $ runState (evaluate e) vars
+result e = runReader (evaluate e) vars

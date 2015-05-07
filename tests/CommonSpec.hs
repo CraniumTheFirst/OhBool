@@ -12,4 +12,4 @@ spec = do
     it "show var" $ do
       show (Var 'x') `shouldBe` "Var 'x'"
     it "eq var" $ do
-      (==) (Var 'x') (Var 'x') `shouldBe` True
+      Var 'x' == Var 'x'
