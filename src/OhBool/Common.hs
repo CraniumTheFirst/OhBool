@@ -6,6 +6,7 @@ import qualified Data.Map as M
 data BinaryOperator = Or
                     | And
                     | Xor
+                    deriving Show
 
 type VarValue = Bool
 newtype Var = Var Char deriving (Show,Ord,Eq)
@@ -16,6 +17,7 @@ getValue = M.lookup
 
 data Expression = BinaryExpression BinaryOperator Expression Expression
                 | Not Expression
-                | Variable Var
                 | BoolChain BinaryOperator [Expression]
                 | BoolValue Bool
+                | Variable Var
+                deriving Show

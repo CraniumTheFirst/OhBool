@@ -4,12 +4,14 @@ module OhBool.Evaluation where
 import OhBool.Common
 
 import qualified Data.Map as M
-import Control.Monad.State.Class
+import qualified Data.Set as S
+import Control.Monad.Reader (runReader)
+import Control.Monad.Reader.Class (MonadReader, ask)
 import Control.Monad (liftM)
 import Data.Bits ((.|.), (.&.), xor)
 
 {-| Expression tree transformed into a State -}
-evaluate :: (MonadState Vars m) => Expression -> m Bool
+evaluate :: (MonadReader Vars m) => Expression -> m Bool
 evaluate (Not ex) = liftM not (evaluate ex)
 evaluate (BinaryExpression op ex1 ex2) = do
   r1 <- evaluate ex1
@@ -20,7 +22,7 @@ evaluate (BoolChain op exprs) = do
   values <- mapM evaluate exprs
   return $ foldl1 (performOperation op) values
 evaluate (Variable v) = do
-  vars <- get
+  vars <- ask
   case getValue v vars of
     Just b -> return b
     Nothing -> error $ "Variable not found " ++ show v
@@ -30,3 +32,36 @@ performOperation :: BinaryOperator -> Bool -> Bool -> Bool
 performOperation Or  = (.|.)
 performOperation And = (.&.)
 performOperation Xor = xor
+
+data TruthTable = TruthTable Expression (M.Map Vars Bool)
+
+instance Show TruthTable where
+  show (TruthTable expr xs) = "Truth table for " ++ show expr ++ "\n" ++ (show xs)
+
+getVariables' :: Expression -> [Var]
+getVariables' (Variable v) = [v]
+getVariables' (Not ex) = getVariables' ex
+getVariables' (BinaryExpression _ ex1 ex2) = getVariables' ex1 ++ getVariables' ex2
+getVariables' (BoolChain _ xs) = concat . map getVariables' $ xs
+getVariables' (BoolValue _) = []
+
+getVariables :: Expression -> S.Set Var
+getVariables = S.fromList . getVariables'
+
+constructTruthTable :: Expression -> TruthTable
+constructTruthTable ex = TruthTable ex eval
+  where variables = S.toAscList $ getVariables ex
+        states = allPossibilities variables
+        eval = M.fromList $ map (\vars -> (vars, runReader (evaluate ex) vars)) states
+
+allStates' :: [(Var,Bool)] -> [Var] -> [[(Var,Bool)]]
+allStates' acc []= [reverse acc]
+allStates' acc (v:vs) = allStates' acc1 vs ++ allStates' acc2 vs
+  where acc1 = (v, True):acc
+        acc2 = (v, False):acc
+
+allStates :: [Var] -> [[(Var,Bool)]]
+allStates = allStates' []
+
+allPossibilities :: [Var] -> [Vars]
+allPossibilities vars = map (\v -> M.fromList v)$ foldl (\ls v -> concatMap (\l -> [(v,True):l,(v,False):l]) ls) [[]] vars
